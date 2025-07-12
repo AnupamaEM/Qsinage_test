@@ -1,47 +1,60 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Eye, EyeOff, Mail, Lock, Monitor } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, Monitor, User } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 
-export function Login() {
+export function SignUp() {
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+
+    // Basic validation
+    if (password !== confirmPassword) {
+      toast({
+        title: "Password Mismatch",
+        description: "Passwords do not match. Please try again.",
+        variant: "destructive",
+      });
+      setIsLoading(false);
+      return;
+    }
+
+    if (password.length < 6) {
+      toast({
+        title: "Password Too Short",
+        description: "Password must be at least 6 characters long.",
+        variant: "destructive",
+      });
+      setIsLoading(false);
+      return;
+    }
 
     // Simulate API call delay
     await new Promise(resolve => setTimeout(resolve, 1000));
 
-    // Check credentials
-    if (email === "abc@gmail.com" && password === "123456") {
-      // Store authentication state
-      localStorage.setItem("isAuthenticated", "true");
-      localStorage.setItem("userEmail", email);
-      
-      toast({
-        title: "Login Successful",
-        description: "Welcome to SignageHub!",
-      });
-      
-      navigate("/");
-    } else {
-      toast({
-        title: "Login Failed",
-        description: "Invalid email or password. Please try again.",
-        variant: "destructive",
-      });
-    }
+    // Simulate successful sign up
+    // In a real app, you would send this data to your backend
+    toast({
+      title: "Account Created Successfully",
+      description: "Welcome to SignageHub! Please sign in with your new account.",
+    });
     
+    // Redirect to login page
+    navigate("/login");
     setIsLoading(false);
   };
 
@@ -61,16 +74,32 @@ export function Login() {
           </p>
         </div>
 
-        {/* Login Card */}
+        {/* Sign Up Card */}
         <Card className="bg-gradient-card border-border shadow-card">
           <CardHeader className="text-center">
-            <CardTitle>Welcome Back</CardTitle>
+            <CardTitle>Create Account</CardTitle>
             <p className="text-muted-foreground">
-              Sign in to your account to continue
+              Sign up to get started with SignageHub
             </p>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleLogin} className="space-y-4">
+            <form onSubmit={handleSignUp} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">Full Name</Label>
+                <div className="relative">
+                  <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="name"
+                    type="text"
+                    placeholder="Enter your full name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="pl-10"
+                    required
+                  />
+                </div>
+              </div>
+
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <div className="relative">
@@ -94,7 +123,7 @@ export function Login() {
                   <Input
                     id="password"
                     type={showPassword ? "text" : "password"}
-                    placeholder="Enter your password"
+                    placeholder="Create a password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="pl-10 pr-10"
@@ -116,34 +145,54 @@ export function Login() {
                 </div>
               </div>
 
+              <div className="space-y-2">
+                <Label htmlFor="confirmPassword">Confirm Password</Label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="confirmPassword"
+                    type={showConfirmPassword ? "text" : "password"}
+                    placeholder="Confirm your password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    className="pl-10 pr-10"
+                    required
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="absolute right-1 top-1 h-8 w-8"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  >
+                    {showConfirmPassword ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
+                  </Button>
+                </div>
+              </div>
+
               <Button
                 type="submit"
                 className="w-full shadow-primary"
                 disabled={isLoading}
               >
-                {isLoading ? "Signing in..." : "Sign In"}
+                {isLoading ? "Creating Account..." : "Create Account"}
               </Button>
             </form>
 
-            {/* Demo Credentials */}
-            <div className="mt-6 p-4 bg-secondary rounded-lg">
-              <h4 className="font-medium text-sm mb-2">Demo Credentials:</h4>
-              <div className="text-xs text-muted-foreground space-y-1">
-                <div>Email: abc@gmail.com</div>
-                <div>Password: 123456</div>
-              </div>
-            </div>
-
-            {/* Sign Up Link */}
+            {/* Sign In Link */}
             <div className="mt-6 text-center">
               <p className="text-sm text-muted-foreground">
-                Don't have an account?{" "}
+                Already have an account?{" "}
                 <Button
                   variant="link"
                   className="p-0 h-auto font-semibold"
-                  onClick={() => navigate("/signup")}
+                  onClick={() => navigate("/login")}
                 >
-                  Sign up here
+                  Sign in here
                 </Button>
               </p>
             </div>
