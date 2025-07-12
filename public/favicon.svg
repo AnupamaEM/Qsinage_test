@@ -1,0 +1,16 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect x="16" y="128" width="480" height="352" rx="40" fill="#7B9EFF" stroke="black" stroke-width="32"/>
+  <rect x="64" y="176" width="352" height="256" rx="32" fill="white" stroke="black" stroke-width="24"/>
+  <circle cx="440" cy="208" r="32" fill="#FFC043" stroke="black" stroke-width="16"/>
+  <circle cx="440" cy="288" r="32" fill="#FFC043" stroke="black" stroke-width="16"/>
+  <rect x="424" y="368" width="32" height="24" rx="8" fill="#FFC043" stroke="black" stroke-width="8"/>
+  <rect x="424" y="408" width="56" height="24" rx="8" fill="#FFC043" stroke="black" stroke-width="8"/>
+  <rect x="0" y="96" width="512" height="32" rx="16" fill="black"/>
+  <ellipse cx="464" cy="112" rx="8" ry="8" fill="#7B9EFF"/>
+  <rect x="120" y="232" width="176" height="24" rx="12" fill="#7B9EFF"/>
+  <rect x="120" y="280" width="120" height="24" rx="12" fill="#7B9EFF"/>
+  <rect x="120" y="328" width="160" height="24" rx="12" fill="#7B9EFF"/>
+  <rect x="120" y="376" width="96" height="24" rx="12" fill="#7B9EFF"/>
+  <line x1="96" y1="176" x2="352" y2="432" stroke="#7B9EFF" stroke-width="16" stroke-linecap="round"/>
+  <line x1="352" y1="176" x2="96" y2="432" stroke="#7B9EFF" stroke-width="16" stroke-linecap="round"/>
+</svg> 
