@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, Calendar, Monitor, Play, Pause, Image, Video, X } from "lucide-react";
+import { Plus, Calendar, Monitor, Play, Pause, Image, Video, X, Trash2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,6 +19,13 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Dialog as ConfirmDialog,
+  DialogContent as ConfirmDialogContent,
+  DialogHeader as ConfirmDialogHeader,
+  DialogTitle as ConfirmDialogTitle,
+  DialogFooter as ConfirmDialogFooter,
+} from "@/components/ui/dialog";
 
 interface MediaFile {
   id: string;
@@ -122,6 +129,8 @@ export function CampaignCreator() {
   });
   const [mediaPreview, setMediaPreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [campaignToDelete, setCampaignToDelete] = useState<string | null>(null);
 
   const getStatusVariant = (status: string) => {
     switch (status) {
@@ -172,6 +181,55 @@ export function CampaignCreator() {
     setNewCampaign((prev) => ({ ...prev, screens: selected }));
   };
 
+  // Add a handler for creating a campaign
+  const handleCreateCampaign = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newCampaign.name || !newCampaign.mediaFile || newCampaign.screens.length === 0) return;
+    const newId = Date.now().toString();
+    setCampaigns((prev) => [
+      {
+        id: newId,
+        name: newCampaign.name,
+        status: 'active',
+        startDate: newCampaign.startDate || '-',
+        endDate: newCampaign.endDate || '-',
+        screens: newCampaign.screens,
+        impressions: 0,
+        mediaFile: newCampaign.mediaFile,
+      },
+      ...prev,
+    ]);
+    setNewCampaign({
+      name: '',
+      description: '',
+      startDate: '',
+      endDate: '',
+      screens: [],
+      mediaFile: null,
+    });
+  };
+
+  // Add a handler for deleting a campaign
+  const handleDeleteClick = (id: string) => {
+    setCampaignToDelete(id);
+    setDeleteDialogOpen(true);
+  };
+
+  // Confirm delete
+  const confirmDeleteCampaign = () => {
+    if (campaignToDelete) {
+      setCampaigns((prev) => prev.filter((c) => c.id !== campaignToDelete));
+    }
+    setDeleteDialogOpen(false);
+    setCampaignToDelete(null);
+  };
+
+  // Cancel delete
+  const cancelDeleteCampaign = () => {
+    setDeleteDialogOpen(false);
+    setCampaignToDelete(null);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -191,13 +249,77 @@ export function CampaignCreator() {
             <CardTitle>Create New Campaign</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="name">Campaign Name</Label>
-                <Input id="name" placeholder="Enter campaign name" value={newCampaign.name} onChange={e => setNewCampaign(prev => ({ ...prev, name: e.target.value }))} />
+            <form onSubmit={handleCreateCampaign}>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="name">Campaign Name</Label>
+                  <Input id="name" placeholder="Enter campaign name" value={newCampaign.name} onChange={e => setNewCampaign(prev => ({ ...prev, name: e.target.value }))} />
+                </div>
+                <div>
+                  <Label htmlFor="media">Media File</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="w-full justify-between"
+                        type="button"
+                      >
+                        {newCampaign.mediaFile
+                          ? newCampaign.mediaFile.name
+                          : "Select media file..."}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-72 p-2">
+                      <div className="flex flex-col gap-1 max-h-48 overflow-y-auto">
+                        {mockMediaLibrary.map((media) => (
+                          <label
+                            key={media.id}
+                            className="flex items-center gap-2 cursor-pointer px-2 py-1 rounded hover:bg-accent"
+                          >
+                            <input
+                              type="radio"
+                              name="mediaFile"
+                              checked={newCampaign.mediaFile?.id === media.id}
+                              onChange={() => {
+                                setNewCampaign((prev) => ({ ...prev, mediaFile: media }));
+                              }}
+                              className="accent-primary"
+                            />
+                            <span className="text-sm">{media.name}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+                  {/* Preview */}
+                  {newCampaign.mediaFile && newCampaign.mediaFile.type === 'image' && (
+                    <img
+                      src={
+                        newCampaign.mediaFile.name.endsWith('.jpg') || newCampaign.mediaFile.name.endsWith('.png')
+                          ? `/media/${newCampaign.mediaFile.name}`
+                          : undefined
+                      }
+                      alt="Preview"
+                      className="mt-2 rounded max-h-32 border"
+                      onError={e => (e.currentTarget.style.display = 'none')}
+                    />
+                  )}
+                  {newCampaign.mediaFile && newCampaign.mediaFile.type === 'video' && (
+                    <video
+                      src={
+                        newCampaign.mediaFile.name.endsWith('.mp4')
+                          ? `/media/${newCampaign.mediaFile.name}`
+                          : undefined
+                      }
+                      controls
+                      className="mt-2 rounded max-h-32 border"
+                      onError={e => (e.currentTarget.style.display = 'none')}
+                    />
+                  )}
+                </div>
               </div>
               <div>
-                <Label htmlFor="media">Media File</Label>
+                <Label htmlFor="screens">Select Screens</Label>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
@@ -205,129 +327,68 @@ export function CampaignCreator() {
                       className="w-full justify-between"
                       type="button"
                     >
-                      {newCampaign.mediaFile
-                        ? newCampaign.mediaFile.name
-                        : "Select media file..."}
+                      {newCampaign.screens.length > 0
+                        ? mockScreens
+                            .filter((s) => newCampaign.screens.includes(s.id))
+                            .map((s) => s.name)
+                            .join(", ")
+                        : "Select screens..."}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-72 p-2">
                     <div className="flex flex-col gap-1 max-h-48 overflow-y-auto">
-                      {mockMediaLibrary.map((media) => (
+                      {mockScreens.map((screen) => (
                         <label
-                          key={media.id}
+                          key={screen.id}
                           className="flex items-center gap-2 cursor-pointer px-2 py-1 rounded hover:bg-accent"
                         >
-                          <input
-                            type="radio"
-                            name="mediaFile"
-                            checked={newCampaign.mediaFile?.id === media.id}
-                            onChange={() => {
-                              setNewCampaign((prev) => ({ ...prev, mediaFile: media }));
+                          <Checkbox
+                            checked={newCampaign.screens.includes(screen.id)}
+                            onCheckedChange={(checked) => {
+                              setNewCampaign((prev) => {
+                                const screens = checked
+                                  ? [...prev.screens, screen.id]
+                                  : prev.screens.filter((id) => id !== screen.id);
+                                return { ...prev, screens };
+                              });
                             }}
-                            className="accent-primary"
+                            id={`screen-checkbox-${screen.id}`}
                           />
-                          <span className="text-sm">{media.name}</span>
+                          <span className="text-sm">{screen.name}</span>
                         </label>
                       ))}
                     </div>
                   </PopoverContent>
                 </Popover>
-                {/* Preview */}
-                {newCampaign.mediaFile && newCampaign.mediaFile.type === 'image' && (
-                  <img
-                    src={
-                      newCampaign.mediaFile.name.endsWith('.jpg') || newCampaign.mediaFile.name.endsWith('.png')
-                        ? `/media/${newCampaign.mediaFile.name}`
-                        : undefined
-                    }
-                    alt="Preview"
-                    className="mt-2 rounded max-h-32 border"
-                    onError={e => (e.currentTarget.style.display = 'none')}
-                  />
-                )}
-                {newCampaign.mediaFile && newCampaign.mediaFile.type === 'video' && (
-                  <video
-                    src={
-                      newCampaign.mediaFile.name.endsWith('.mp4')
-                        ? `/media/${newCampaign.mediaFile.name}`
-                        : undefined
-                    }
-                    controls
-                    className="mt-2 rounded max-h-32 border"
-                    onError={e => (e.currentTarget.style.display = 'none')}
-                  />
-                )}
-              </div>
-            </div>
-            <div>
-              <Label htmlFor="screens">Select Screens</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className="w-full justify-between"
-                    type="button"
-                  >
-                    {newCampaign.screens.length > 0
-                      ? mockScreens
-                          .filter((s) => newCampaign.screens.includes(s.id))
-                          .map((s) => s.name)
-                          .join(", ")
-                      : "Select screens..."}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-72 p-2">
-                  <div className="flex flex-col gap-1 max-h-48 overflow-y-auto">
-                    {mockScreens.map((screen) => (
-                      <label
-                        key={screen.id}
-                        className="flex items-center gap-2 cursor-pointer px-2 py-1 rounded hover:bg-accent"
-                      >
-                        <Checkbox
-                          checked={newCampaign.screens.includes(screen.id)}
-                          onCheckedChange={(checked) => {
-                            setNewCampaign((prev) => {
-                              const screens = checked
-                                ? [...prev.screens, screen.id]
-                                : prev.screens.filter((id) => id !== screen.id);
-                              return { ...prev, screens };
-                            });
-                          }}
-                          id={`screen-checkbox-${screen.id}`}
-                        />
-                        <span className="text-sm">{screen.name}</span>
-                      </label>
-                    ))}
-                  </div>
-                </PopoverContent>
-              </Popover>
-              <div className="text-xs text-muted-foreground mt-1">You can select multiple screens.</div>
-            </div>
-            <div>
-              <Label htmlFor="description">Description</Label>
-              <Textarea id="description" placeholder="Campaign description" value={newCampaign.description} onChange={e => setNewCampaign(prev => ({ ...prev, description: e.target.value }))} />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="start">Start Date</Label>
-                <Input id="start" type="date" value={newCampaign.startDate} onChange={e => setNewCampaign(prev => ({ ...prev, startDate: e.target.value }))} />
+                <div className="text-xs text-muted-foreground mt-1">You can select multiple screens.</div>
               </div>
               <div>
-                <Label htmlFor="end">End Date</Label>
-                <Input id="end" type="date" value={newCampaign.endDate} onChange={e => setNewCampaign(prev => ({ ...prev, endDate: e.target.value }))} />
+                <Label htmlFor="description">Description</Label>
+                <Textarea id="description" placeholder="Campaign description" value={newCampaign.description} onChange={e => setNewCampaign(prev => ({ ...prev, description: e.target.value }))} />
               </div>
-            </div>
-            <div className="flex gap-2">
-              <Button className="shadow-primary">Create Campaign</Button>
-              <Button variant="outline" onClick={() => setShowCreateForm(false)}>
-                Cancel
-              </Button>
-            </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="start">Start Date</Label>
+                  <Input id="start" type="date" value={newCampaign.startDate} onChange={e => setNewCampaign(prev => ({ ...prev, startDate: e.target.value }))} />
+                </div>
+                <div>
+                  <Label htmlFor="end">End Date</Label>
+                  <Input id="end" type="date" value={newCampaign.endDate} onChange={e => setNewCampaign(prev => ({ ...prev, endDate: e.target.value }))} />
+                </div>
+              </div>
+              <div className="flex gap-2 mt-4">
+                <Button className="shadow-primary" type="submit">Create Campaign</Button>
+                <Button variant="outline" type="button" onClick={() => setShowCreateForm(false)}>
+                  Cancel
+                </Button>
+              </div>
+            </form>
           </CardContent>
         </Card>
       )}
 
-      <div className="grid gap-4">
+      {/* Campaigns List */}
+      <div className="grid gap-4 mt-6">
         {campaigns.map((campaign) => (
           <Card key={campaign.id} className="bg-gradient-card border-border shadow-card">
             <CardContent className="p-6">
@@ -338,12 +399,22 @@ export function CampaignCreator() {
                     {campaign.startDate} → {campaign.endDate}
                   </p>
                 </div>
-                <Badge variant={getStatusVariant(campaign.status) as any} className="gap-1">
-                  {getStatusIcon(campaign.status)}
-                  {campaign.status}
-                </Badge>
+                <div className="flex gap-2 items-center">
+                  <Badge variant={getStatusVariant(campaign.status) as any} className="gap-1">
+                    {getStatusIcon(campaign.status)}
+                    {campaign.status}
+                  </Badge>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    onClick={() => handleDeleteClick(campaign.id)}
+                    className="text-destructive hover:bg-destructive/10"
+                    title="Delete Campaign"
+                  >
+                    <Trash2 className="h-5 w-5" />
+                  </Button>
+                </div>
               </div>
-              
               <div className="grid grid-cols-3 gap-4 mb-4">
                 <div>
                   <span className="text-muted-foreground text-sm">Screens</span>
@@ -358,7 +429,6 @@ export function CampaignCreator() {
                   <div className="font-medium capitalize">{campaign.status}</div>
                 </div>
               </div>
-
               {/* Media File Display */}
               {campaign.mediaFile && (
                 <div className="mb-4 p-3 bg-secondary rounded-lg">
@@ -387,7 +457,6 @@ export function CampaignCreator() {
                   </div>
                 </div>
               )}
-              
               <div className="flex gap-2">
                 <Button size="sm" variant="outline">
                   <Monitor className="h-4 w-4" />
@@ -477,6 +546,22 @@ export function CampaignCreator() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <ConfirmDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <ConfirmDialogContent>
+          <ConfirmDialogHeader>
+            <ConfirmDialogTitle>Delete Campaign?</ConfirmDialogTitle>
+          </ConfirmDialogHeader>
+          <div className="py-4 text-sm text-muted-foreground">
+            Are you sure you want to delete this campaign? This action cannot be undone.
+          </div>
+          <ConfirmDialogFooter className="flex gap-2 justify-end">
+            <Button variant="outline" onClick={cancelDeleteCampaign} type="button">Cancel</Button>
+            <Button variant="destructive" onClick={confirmDeleteCampaign} type="button">Delete</Button>
+          </ConfirmDialogFooter>
+        </ConfirmDialogContent>
+      </ConfirmDialog>
     </div>
   );
 }
