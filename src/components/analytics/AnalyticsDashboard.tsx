@@ -1,4 +1,4 @@
-import { BarChart3, TrendingUp, Clock, Users } from "lucide-react";
+import { BarChart3, TrendingUp, Clock, Users, AlertTriangle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export function AnalyticsDashboard() {
@@ -15,6 +15,11 @@ export function AnalyticsDashboard() {
     { name: "Brand Awareness", impressions: 320000, clicks: 1800, ctr: "0.56%" },
     { name: "Summer Promo", impressions: 156000, clicks: 780, ctr: "0.50%" }
   ];
+
+  // Mock device status
+  const totalScreens = 24;
+  const onlineScreens = 18;
+  const offlineScreens = totalScreens - onlineScreens;
 
   return (
     <div className="space-y-6">
@@ -101,10 +106,17 @@ export function AnalyticsDashboard() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="grid gap-4 md:grid-cols-4">
             <div className="text-center p-4 bg-secondary rounded-lg">
               <div className="text-2xl font-bold text-success">LIVE</div>
-              <div className="text-sm text-muted-foreground">18 Screens Online</div>
+              <div className="text-sm text-muted-foreground">{onlineScreens} Screens Online</div>
+            </div>
+            <div className="text-center p-4 bg-secondary rounded-lg">
+              <div className="flex items-center justify-center gap-2">
+                <AlertTriangle className="h-6 w-6 text-red-500 animate-pulse" />
+                <span className="text-2xl font-bold text-red-500">{offlineScreens}</span>
+              </div>
+              <div className="text-sm text-red-500 font-semibold">Devices Offline</div>
             </div>
             <div className="text-center p-4 bg-secondary rounded-lg">
               <div className="text-2xl font-bold text-primary">8</div>
