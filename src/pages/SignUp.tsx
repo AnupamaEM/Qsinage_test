@@ -43,19 +43,34 @@ export function SignUp() {
       return;
     }
 
-    // Simulate API call delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    try {
+      const response = await fetch("http://localhost:5000/api/auth/signup", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ name, email, password }),
+      });
 
-    // Simulate successful sign up
-    // In a real app, you would send this data to your backend
-    toast({
-      title: "Account Created Successfully",
-      description: "Welcome to SignageHub! Please sign in with your new account.",
-    });
-    
-    // Redirect to login page
-    navigate("/login");
-    setIsLoading(false);
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.message || "Sign up failed");
+      }
+
+      toast({
+        title: "Account Created Successfully",
+        description: "Welcome to SignageHub! Please sign in with your new account.",
+      });
+      navigate("/login");
+    } catch (error: any) {
+      toast({
+        title: "Sign Up Failed",
+        description: error.message || "An error occurred during sign up.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
