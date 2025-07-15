@@ -19,30 +19,40 @@ export function Login() {
     e.preventDefault();
     setIsLoading(true);
 
-    // Simulate API call delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    try {
+      const response = await fetch("http://localhost:5000/api/auth/signin", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
 
-    // Check credentials
-    if (email === "abc@gmail.com" && password === "123456") {
-      // Store authentication state
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Invalid email or password. Please try again.");
+      }
+
+      // Store authentication state (token)
       localStorage.setItem("isAuthenticated", "true");
       localStorage.setItem("userEmail", email);
-      
+      localStorage.setItem("token", data.token);
+
       toast({
         title: "Login Successful",
         description: "Welcome to SignageHub!",
       });
-      
       navigate("/");
-    } else {
+    } catch (error: any) {
       toast({
         title: "Login Failed",
-        description: "Invalid email or password. Please try again.",
+        description: error.message || "Invalid email or password. Please try again.",
         variant: "destructive",
       });
+    } finally {
+      setIsLoading(false);
     }
-    
-    setIsLoading(false);
   };
 
   return (
